@@ -84,8 +84,13 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ```
 src/
+├── entry/
+│   ├── index.tsx        # App bootstrap (createRoot)
+│   ├── App.tsx          # Router shell
+│   ├── routes.tsx       # Route definitions
+│   └── LocaleSync.tsx   # Locale & document title sync
 ├── components/
-│   ├── layout/          # Header, navigation
+│   ├── layout/          # Header, language switcher
 │   ├── workspace/       # Canvas editor, property panel, toolbar
 │   ├── upload/          # Upload zones, generation progress
 │   └── ui/              # Button, Input, Select, Slider, Badge
@@ -93,9 +98,14 @@ src/
 │   ├── HomePage.tsx     # Landing page
 │   ├── UploadPage.tsx   # Content upload & generation
 │   └── WorkspacePage.tsx # Main editor workspace
+├── i18n/
+│   ├── locales/         # en.ts, zh.ts
+│   └── index.ts         # translate helpers
 ├── store/
-│   └── workspaceStore.ts # Zustand global state
+│   ├── workspaceStore.ts # Zustand workspace state
+│   └── localeStore.ts    # Language preference
 ├── hooks/
+│   ├── useTranslation.ts # i18n hook
 │   ├── useDragResize.ts  # Canvas drag & resize logic
 │   └── useCanvasExport.ts # PNG export hook
 ├── mock/
@@ -110,8 +120,9 @@ src/
 │   ├── export.ts         # PNG export utilities
 │   ├── canvas.ts         # Canvas helper functions
 │   └── colors.ts         # Brand color palette
-└── types/
-    └── index.ts          # TypeScript type definitions
+├── types/
+│   └── index.ts          # TypeScript type definitions
+└── index.css             # Global styles
 ```
 
 ## Mock Data
