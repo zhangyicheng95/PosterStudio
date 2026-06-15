@@ -2,13 +2,13 @@ import { Download, ZoomIn, ZoomOut, RotateCcw, Loader2, Package } from 'lucide-r
 import { Button } from '../ui/Button'
 import { useCanvasExport } from '../../hooks/useCanvasExport'
 import { useTranslation } from '../../hooks/useTranslation'
-import type { AssetType } from '../../types'
+import type { GeneratedAsset } from '../../types'
 
 interface ToolbarProps {
   assetName: string
-  assetTypes: AssetType[]
+  activeAsset: GeneratedAsset | null
+  allAssets: GeneratedAsset[]
   zoom: number
-  canvasRef: React.RefObject<HTMLDivElement | null>
   onZoomIn: () => void
   onZoomOut: () => void
   onResetZoom: () => void
@@ -16,9 +16,9 @@ interface ToolbarProps {
 
 export function Toolbar({
   assetName,
-  assetTypes,
+  activeAsset,
+  allAssets,
   zoom,
-  canvasRef,
   onZoomIn,
   onZoomOut,
   onResetZoom,
@@ -27,12 +27,11 @@ export function Toolbar({
   const { exportPng, exportAll, isExporting } = useCanvasExport()
 
   const handleExport = () => {
-    const canvas = canvasRef.current?.querySelector('[data-export-canvas="active"]') as HTMLElement | null
-    exportPng(canvas, assetName)
+    if (activeAsset) exportPng(activeAsset, assetName)
   }
 
   const handleExportAll = () => {
-    exportAll(assetTypes, assetLabel)
+    exportAll(allAssets, (asset) => assetLabel(asset.assetType))
   }
 
   return (
@@ -52,11 +51,11 @@ export function Toolbar({
           <ZoomIn className="h-4 w-4" />
         </Button>
         <div className="w-px h-5 bg-slate-200 mx-1 hidden sm:block" />
-        <Button size="sm" onClick={handleExport} disabled={isExporting}>
+        <Button size="sm" onClick={handleExport} disabled={isExporting || !activeAsset}>
           {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
           <span className="hidden sm:inline">{t('workspace.exportPng')}</span>
         </Button>
-        <Button variant="secondary" size="sm" onClick={handleExportAll} disabled={isExporting}>
+        <Button variant="secondary" size="sm" onClick={handleExportAll} disabled={isExporting || allAssets.length === 0}>
           {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Package className="h-4 w-4" />}
           <span className="hidden md:inline">{t('workspace.exportAll')}</span>
         </Button>

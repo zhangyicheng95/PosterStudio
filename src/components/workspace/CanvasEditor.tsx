@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import type { GeneratedAsset } from '../../types'
 import { useDragResize } from '../../hooks/useDragResize'
 import { useTranslation } from '../../hooks/useTranslation'
+import { normalizeOverlayElements } from '../../utils/canvas'
 import { AssetCanvas } from './AssetCanvas'
 import { CanvasElementView } from './CanvasElementView'
 
@@ -46,7 +47,9 @@ export function CanvasEditor({
   return (
     <div
       className="flex flex-1 items-center justify-center overflow-auto bg-[#e8eaed] p-4 md:p-8"
-      onClick={() => onSelectElement(null)}
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onSelectElement(null)
+      }}
     >
       <div
         style={{
@@ -54,10 +57,11 @@ export function CanvasEditor({
           transformOrigin: 'center center',
           transition: 'transform 0.15s ease',
         }}
+        onMouseDown={(e) => e.stopPropagation()}
       >
-        <div ref={canvasRef}>
+        <div ref={canvasRef} onMouseDown={(e) => e.stopPropagation()}>
           <AssetCanvas asset={asset} exportId="active" showShadow>
-            {asset.elements.map((element) => (
+            {normalizeOverlayElements(asset.elements).map((element) => (
               <CanvasElementView
                 key={element.id}
                 element={element}

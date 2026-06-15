@@ -17,6 +17,8 @@ export interface ElementStyle {
   lineHeight?: number
   letterSpacing?: number
   objectFit?: 'cover' | 'contain' | 'fill'
+  /** Vertical alignment inside the element box. Defaults to middle when textAlign is center, else top. */
+  verticalAlign?: 'top' | 'middle'
 }
 
 export interface CanvasElement {

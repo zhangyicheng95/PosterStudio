@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { CanvasElement } from '../../types'
 import type { ResizeHandle } from '../../utils/canvas'
 import { RESIZE_HANDLES } from '../../utils/canvas'
+import { getMiddleTextStyle, getResolvedVerticalAlign, getTextTypography } from '../../utils/textLayout'
 
 interface CanvasElementViewProps {
   element: CanvasElement
@@ -10,6 +11,7 @@ interface CanvasElementViewProps {
   onDragStart: (e: React.MouseEvent, element: CanvasElement) => void
   onResizeStart: (e: React.MouseEvent, element: CanvasElement, handle: ResizeHandle) => void
   interactive?: boolean
+  forExport?: boolean
 }
 
 function getHandleStyle(handle: ResizeHandle, w: number, h: number): React.CSSProperties {
@@ -26,6 +28,30 @@ function getHandleStyle(handle: ResizeHandle, w: number, h: number): React.CSSPr
   return positions[handle]
 }
 
+function renderTextContent(element: CanvasElement, forExport: boolean) {
+  const verticalAlign = getResolvedVerticalAlign(element)
+  const wrapperStyle: React.CSSProperties = {
+    width: '100%',
+    height: '100%',
+    boxSizing: 'border-box',
+    overflow: forExport ? 'visible' : 'hidden',
+  }
+
+  if (verticalAlign === 'middle') {
+    return (
+      <div data-text-valign="middle" style={wrapperStyle}>
+        <div style={getMiddleTextStyle(element, forExport)}>{element.content}</div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={wrapperStyle}>
+      <div style={getTextTypography(element, forExport)}>{element.content}</div>
+    </div>
+  )
+}
+
 export const CanvasElementView = memo(function CanvasElementView({
   element,
   isSelected,
@@ -33,7 +59,10 @@ export const CanvasElementView = memo(function CanvasElementView({
   onDragStart,
   onResizeStart,
   interactive = true,
+  forExport = false,
 }: CanvasElementViewProps) {
+  const isText = element.type === 'text'
+
   const style: React.CSSProperties = {
     position: 'absolute',
     left: element.x,
@@ -43,40 +72,15 @@ export const CanvasElementView = memo(function CanvasElementView({
     transform: element.rotation ? `rotate(${element.rotation}deg)` : undefined,
     opacity: element.style?.opacity ?? 1,
     cursor: !interactive || element.locked ? 'default' : 'move',
-    zIndex: isSelected ? 20 : 1,
+    zIndex: isSelected ? 20 : element.type === 'text' ? 2 : element.locked && element.type === 'shape' ? 0 : 1,
+    pointerEvents: interactive && element.locked && element.type === 'shape' ? 'none' : undefined,
+    overflow: forExport && isText ? 'visible' : undefined,
   }
 
   const renderContent = () => {
     switch (element.type) {
       case 'text':
-        return (
-          <div
-            style={{
-              width: '100%',
-              height: '100%',
-              fontSize: element.style?.fontSize ?? 16,
-              fontWeight: element.style?.fontWeight ?? 400,
-              color: element.style?.color ?? '#000',
-              textAlign: element.style?.textAlign ?? 'left',
-              lineHeight: element.style?.lineHeight ?? 1.4,
-              letterSpacing: element.style?.letterSpacing,
-              fontFamily: element.style?.fontFamily ?? 'Inter, sans-serif',
-              display: 'flex',
-              alignItems: element.style?.textAlign === 'center' ? 'center' : 'flex-start',
-              justifyContent:
-                element.style?.textAlign === 'center'
-                  ? 'center'
-                  : element.style?.textAlign === 'right'
-                    ? 'flex-end'
-                    : 'flex-start',
-              overflow: 'hidden',
-              wordBreak: 'break-word',
-              whiteSpace: 'pre-wrap',
-            }}
-          >
-            {element.content}
-          </div>
-        )
+        return renderTextContent(element, forExport)
       case 'image':
       case 'qrcode':
         return (
@@ -91,6 +95,7 @@ export const CanvasElementView = memo(function CanvasElementView({
               objectFit: element.style?.objectFit ?? 'cover',
               borderRadius: element.style?.borderRadius ?? 0,
               backgroundColor: element.style?.backgroundColor,
+              pointerEvents: 'none',
             }}
           />
         )
@@ -112,11 +117,12 @@ export const CanvasElementView = memo(function CanvasElementView({
 
   return (
     <div
-      className={`canvas-element ${isSelected ? 'selected' : ''}`}
+      className={forExport ? 'canvas-element' : `canvas-element ${isSelected ? 'selected' : ''}`}
       style={style}
       onMouseDown={
         interactive
           ? (e) => {
+              e.stopPropagation()
               onSelect(element.id)
               if (!element.locked) onDragStart(e, element)
             }

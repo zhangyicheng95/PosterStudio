@@ -1,14 +1,24 @@
 import type { GeneratedAsset } from '../../types'
+import { normalizeOverlayElements } from '../../utils/canvas'
 import { CanvasElementView } from './CanvasElementView'
 
 interface AssetCanvasProps {
   asset: GeneratedAsset
   exportId?: string
   showShadow?: boolean
+  forExport?: boolean
   children?: React.ReactNode
 }
 
-export function AssetCanvas({ asset, exportId, showShadow = false, children }: AssetCanvasProps) {
+export function AssetCanvas({
+  asset,
+  exportId,
+  showShadow = false,
+  forExport = false,
+  children,
+}: AssetCanvasProps) {
+  const elements = normalizeOverlayElements(asset.elements)
+
   return (
     <div
       data-export-canvas={exportId ?? 'active'}
@@ -18,14 +28,14 @@ export function AssetCanvas({ asset, exportId, showShadow = false, children }: A
         background: asset.background,
         position: 'relative',
         overflow: 'hidden',
-        boxShadow: showShadow
+        boxShadow: showShadow && !forExport
           ? '0 25px 50px -12px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)'
           : undefined,
-        borderRadius: showShadow ? 4 : 0,
+        borderRadius: showShadow && !forExport ? 4 : 0,
       }}
     >
       {children ??
-        asset.elements.map((element) => (
+        elements.map((element) => (
           <CanvasElementView
             key={element.id}
             element={element}
@@ -34,22 +44,9 @@ export function AssetCanvas({ asset, exportId, showShadow = false, children }: A
             onDragStart={() => {}}
             onResizeStart={() => {}}
             interactive={false}
+            forExport={forExport}
           />
         ))}
-    </div>
-  )
-}
-
-interface HiddenExportCanvasesProps {
-  assets: GeneratedAsset[]
-}
-
-export function HiddenExportCanvases({ assets }: HiddenExportCanvasesProps) {
-  return (
-    <div className="fixed -left-[9999px] top-0 opacity-0 pointer-events-none" aria-hidden>
-      {assets.map((asset) => (
-        <AssetCanvas key={asset.assetType} asset={asset} exportId={asset.assetType} />
-      ))}
     </div>
   )
 }

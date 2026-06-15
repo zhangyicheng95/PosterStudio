@@ -6,7 +6,6 @@ import { CanvasEditor } from '../components/workspace/CanvasEditor'
 import { PropertyPanel } from '../components/workspace/PropertyPanel'
 import { TemplateSwitcher } from '../components/workspace/TemplateSwitcher'
 import { Toolbar } from '../components/workspace/Toolbar'
-import { HiddenExportCanvases } from '../components/workspace/AssetCanvas'
 import { LanguageSwitcher } from '../components/layout/LanguageSwitcher'
 import { useWorkspaceStore } from '../store/workspaceStore'
 import { useLocaleStore } from '../store/localeStore'
@@ -15,14 +14,6 @@ import { useTranslation } from '../hooks/useTranslation'
 import { useWorkspaceShortcuts } from '../hooks/useWorkspaceShortcuts'
 import { useCanvasExport } from '../hooks/useCanvasExport'
 import type { AssetType } from '../types'
-
-const ASSET_TYPES: AssetType[] = [
-  'enrollment-poster',
-  'teacher-card',
-  'course-card',
-  'xiaohongshu-cover',
-  'moments-banner',
-]
 
 type MobilePanel = 'assets' | 'canvas' | 'properties'
 
@@ -62,20 +53,17 @@ export function WorkspacePage() {
   const { exportPng, exportAll } = useCanvasExport()
 
   const handleExport = useCallback(() => {
-    const canvas = canvasRef.current?.querySelector('[data-export-canvas="active"]') as HTMLElement | null
-    exportPng(canvas, assetLabel(activeAssetType))
-  }, [exportPng, assetLabel, activeAssetType])
+    if (activeAsset) exportPng(activeAsset, assetLabel(activeAssetType))
+  }, [exportPng, activeAsset, assetLabel, activeAssetType])
 
   const handleExportAll = useCallback(() => {
-    exportAll(ASSET_TYPES, assetLabel)
-  }, [exportAll, assetLabel])
+    exportAll(assets, (asset) => assetLabel(asset.assetType))
+  }, [exportAll, assets, assetLabel])
 
   useWorkspaceShortcuts({ onExport: handleExport, onExportAll: handleExportAll })
 
   return (
     <div className="flex h-screen flex-col bg-white">
-      <HiddenExportCanvases assets={assets} />
-
       <header className="flex h-12 shrink-0 items-center justify-between border-b border-slate-200 px-4">
         <div className="flex items-center gap-3">
           <Link to="/" className="flex items-center gap-2 group">
@@ -109,9 +97,9 @@ export function WorkspacePage() {
         <div className={`${mobilePanel === 'canvas' ? 'flex' : 'hidden'} lg:flex flex-1 flex-col overflow-hidden`}>
           <Toolbar
             assetName={assetLabel(activeAssetType)}
-            assetTypes={ASSET_TYPES}
+            activeAsset={activeAsset}
+            allAssets={assets}
             zoom={zoom}
-            canvasRef={canvasRef}
             onZoomIn={() => setZoom(zoom + 0.05)}
             onZoomOut={() => setZoom(zoom - 0.05)}
             onResetZoom={() => setZoom(0.45)}

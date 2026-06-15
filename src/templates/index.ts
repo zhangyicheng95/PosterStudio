@@ -1,7 +1,8 @@
-import type { AssetContent, CanvasElement, Template } from '../types'
+import type { AssetContent, CanvasElement, ElementStyle, Template } from '../types'
 import type { TemplateLabels, TemplateVariantNames } from '../i18n/types'
 import { getTemplateLabels, getTemplateVariantNames } from '../i18n'
 import type { Locale } from '../i18n/types'
+import { lineBoxHeight } from '../utils/textLayout'
 
 function el(partial: CanvasElement): CanvasElement {
   return partial
@@ -55,6 +56,201 @@ function getContext(locale: Locale): TemplateContext {
   }
 }
 
+/** CTA shape + text sharing the exact same bounding box (export-safe centering). */
+function ctaButton(
+  id: string,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  content: string,
+  boxStyle: ElementStyle,
+  textStyle: ElementStyle,
+): CanvasElement[] {
+  const textBoxStyle: ElementStyle = {
+    ...textStyle,
+    textAlign: 'center',
+    verticalAlign: 'middle',
+    lineHeight: textStyle.lineHeight ?? 1.2,
+  }
+  return [
+    el({ id: `${id}-box`, type: 'shape', x, y, width: w, height: h, style: boxStyle }),
+    el({ id, type: 'text', fieldKey: 'cta', x, y, width: w, height: h, content, style: textBoxStyle }),
+  ]
+}
+
+/** Shape + centered label sharing the exact same bounding box. */
+function centeredLabel(
+  id: string,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  content: string,
+  boxStyle: ElementStyle,
+  textStyle: ElementStyle,
+  locked = false,
+): CanvasElement[] {
+  return [
+    el({ id: `${id}-bg`, type: 'shape', x, y, width: w, height: h, style: boxStyle }),
+    el({ id, type: 'text', x, y, width: w, height: h, content, style: { ...textStyle, textAlign: 'center', verticalAlign: 'middle', lineHeight: textStyle.lineHeight ?? 1.2 }, locked }),
+  ]
+}
+
+/** Avatar + name + experience row with vertically aligned text block. */
+function teacherRow(
+  idPrefix: string,
+  row: { x: number; y: number; width: number; height: number; style?: ElementStyle },
+  avatarSize: number,
+  content: AssetContent,
+  nameStyle: ElementStyle,
+  expStyle: ElementStyle,
+  textWidth?: number,
+): CanvasElement[] {
+  const nameH = lineBoxHeight(nameStyle)
+  const expH = lineBoxHeight(expStyle)
+  const gap = 4
+  const textBlockH = nameH + gap + expH
+  const pad = (row.height - avatarSize) / 2
+  const avatarX = row.x + pad
+  const avatarY = row.y + pad
+  const textX = avatarX + avatarSize + 12
+  const textW = textWidth ?? row.width - (textX - row.x) - pad
+  const textY = row.y + (row.height - textBlockH) / 2
+
+  return [
+    el({ id: `${idPrefix}-row`, type: 'shape', x: row.x, y: row.y, width: row.width, height: row.height, style: row.style ?? {} }),
+    el({
+      id: `${idPrefix}-avatar`,
+      type: 'image',
+      fieldKey: 'teacherAvatar',
+      x: avatarX,
+      y: avatarY,
+      width: avatarSize,
+      height: avatarSize,
+      style: { borderRadius: avatarSize / 2, objectFit: 'cover' },
+    }),
+    el({
+      id: `${idPrefix}-name`,
+      type: 'text',
+      fieldKey: 'teacherName',
+      x: textX,
+      y: textY,
+      width: textW,
+      height: nameH,
+      content: content.teacherName,
+      style: { ...nameStyle, verticalAlign: 'top' },
+    }),
+    el({
+      id: `${idPrefix}-exp`,
+      type: 'text',
+      fieldKey: 'teacherExperience',
+      x: textX,
+      y: textY + nameH + gap,
+      width: textW,
+      height: expH,
+      content: content.teacherExperience,
+      style: { ...expStyle, verticalAlign: 'top' },
+    }),
+  ]
+}
+
+/** Compact teacher pill: avatar + single-line name vertically centered in tag. */
+function teacherTag(
+  idPrefix: string,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  avatarSize: number,
+  content: AssetContent,
+  boxStyle: ElementStyle,
+  textStyle: ElementStyle,
+): CanvasElement[] {
+  const pad = (h - avatarSize) / 2
+  const avatarX = x + pad
+  const avatarY = y + pad
+  const textX = avatarX + avatarSize + 10
+  const textW = w - (textX - x) - pad
+
+  return [
+    el({ id: `${idPrefix}-tag`, type: 'shape', x, y, width: w, height: h, style: boxStyle }),
+    el({
+      id: `${idPrefix}-avatar`,
+      type: 'image',
+      fieldKey: 'teacherAvatar',
+      x: avatarX,
+      y: avatarY,
+      width: avatarSize,
+      height: avatarSize,
+      style: { borderRadius: avatarSize / 2, objectFit: 'cover' },
+    }),
+    el({
+      id: `${idPrefix}-name`,
+      type: 'text',
+      fieldKey: 'teacherName',
+      x: textX,
+      y,
+      width: textW,
+      height: h,
+      content: content.teacherName,
+      style: { ...textStyle, verticalAlign: 'middle' },
+    }),
+  ]
+}
+
+/** Avatar with name + experience block vertically centered beside it. */
+function teacherAside(
+  avatarX: number,
+  avatarY: number,
+  avatarSize: number,
+  textX: number,
+  content: AssetContent,
+  nameStyle: ElementStyle,
+  expStyle: ElementStyle,
+): CanvasElement[] {
+  const nameH = lineBoxHeight(nameStyle)
+  const expH = lineBoxHeight(expStyle)
+  const gap = 6
+  const blockH = nameH + gap + expH
+  const textY = avatarY + (avatarSize - blockH) / 2
+
+  return [
+    el({
+      id: 'teacher-avatar',
+      type: 'image',
+      fieldKey: 'teacherAvatar',
+      x: avatarX,
+      y: avatarY,
+      width: avatarSize,
+      height: avatarSize,
+      style: { borderRadius: avatarSize / 2, objectFit: 'cover' },
+    }),
+    el({
+      id: 'teacher-name',
+      type: 'text',
+      fieldKey: 'teacherName',
+      x: textX,
+      y: textY,
+      width: 300,
+      height: nameH,
+      content: content.teacherName,
+      style: { ...nameStyle, verticalAlign: 'top' },
+    }),
+    el({
+      id: 'teacher-exp',
+      type: 'text',
+      fieldKey: 'teacherExperience',
+      x: textX,
+      y: textY + nameH + gap,
+      width: 400,
+      height: expH,
+      content: content.teacherExperience,
+      style: { ...expStyle, verticalAlign: 'top' },
+    }),
+  ]
+}
+
 export function createEnrollmentPoster(
   content: AssetContent,
   variant = 'classic',
@@ -76,13 +272,27 @@ export function createEnrollmentPoster(
     el({ id: 'course-name', type: 'text', fieldKey: 'courseName', x: 40, y: 130, width: 670, height: 80, content: content.courseName, style: { fontSize: 36, fontWeight: 700, color: '#ffffff', lineHeight: 1.2 } }),
     el({ id: 'slogan', type: 'text', fieldKey: 'slogan', x: 40, y: 220, width: 500, height: 30, content: content.slogan, style: { fontSize: 16, color: 'rgba(255,255,255,0.85)' } }),
     el({ id: 'screenshot', type: 'image', fieldKey: 'classroomScreenshot', x: 40, y: 280, width: 670, height: 420, style: { borderRadius: 16, objectFit: 'cover' } }),
-    el({ id: 'teacher-avatar', type: 'image', fieldKey: 'teacherAvatar', x: 40, y: 730, width: 80, height: 80, style: { borderRadius: 40, objectFit: 'cover' } }),
-    el({ id: 'teacher-name', type: 'text', fieldKey: 'teacherName', x: 140, y: 740, width: 300, height: 30, content: content.teacherName, style: { fontSize: 20, fontWeight: 600, color: '#ffffff' } }),
-    el({ id: 'teacher-exp', type: 'text', fieldKey: 'teacherExperience', x: 140, y: 775, width: 400, height: 24, content: content.teacherExperience, style: { fontSize: 14, color: 'rgba(255,255,255,0.75)' } }),
+    ...teacherAside(
+      40,
+      730,
+      80,
+      140,
+      content,
+      { fontSize: 20, fontWeight: 600, color: '#ffffff', lineHeight: 1.2 },
+      { fontSize: 14, color: 'rgba(255,255,255,0.75)', lineHeight: 1.2 },
+    ),
     el({ id: 'qr', type: 'image', fieldKey: 'qrCode', x: 580, y: 720, width: 130, height: 130, style: { borderRadius: 8, objectFit: 'cover', backgroundColor: '#ffffff' } }),
-    el({ id: 'scan-text', type: 'text', x: 580, y: 860, width: 130, height: 20, content: labels.scanToEnroll, style: { fontSize: 12, color: 'rgba(255,255,255,0.7)', textAlign: 'center' }, locked: true }),
-    el({ id: 'cta-badge', type: 'shape', x: 40, y: 900, width: 200, height: 44, style: { backgroundColor: '#ffffff', borderRadius: 22 } }),
-    el({ id: 'cta-text', type: 'text', fieldKey: 'cta', x: 40, y: 908, width: 200, height: 28, content: content.cta, style: { fontSize: 14, fontWeight: 600, color: '#4f46e5', textAlign: 'center' } }),
+    el({ id: 'scan-text', type: 'text', x: 580, y: 860, width: 130, height: 24, content: labels.scanToEnroll, style: { fontSize: 12, color: 'rgba(255,255,255,0.7)', textAlign: 'center' }, locked: true }),
+    ...ctaButton(
+      'cta',
+      40,
+      900,
+      200,
+      44,
+      content.cta,
+      { backgroundColor: '#ffffff', borderRadius: 22 },
+      { fontSize: 14, fontWeight: 600, color: '#4f46e5' },
+    ),
   ]
 
   return {
@@ -118,10 +328,10 @@ export function createTeacherCard(content: AssetContent, variant = 'modern', loc
     el({ id: 'style', type: 'text', fieldKey: 'teachingStyle', x: 40, y: 445, width: 520, height: 30, content: content.teachingStyle, style: { fontSize: 18, fontWeight: 500, color: textPrimary, textAlign: 'center' } }),
     el({ id: 'stat-box-1', type: 'shape', x: 60, y: 520, width: 220, height: 100, style: { backgroundColor: isDark ? '#334155' : '#f1f5f9', borderRadius: 12 } }),
     el({ id: 'stat-box-2', type: 'shape', x: 320, y: 520, width: 220, height: 100, style: { backgroundColor: isDark ? '#334155' : '#f1f5f9', borderRadius: 12 } }),
-    el({ id: 'courses-num', type: 'text', fieldKey: 'courseCount', x: 60, y: 540, width: 220, height: 40, content: String(content.courseCount), style: { fontSize: 32, fontWeight: 700, color: '#6366f1', textAlign: 'center' } }),
-    el({ id: 'courses-label', type: 'text', x: 60, y: 585, width: 220, height: 20, content: labels.courses, style: { fontSize: 13, color: textSecondary, textAlign: 'center' }, locked: true }),
-    el({ id: 'students-num', type: 'text', fieldKey: 'studentCount', x: 320, y: 540, width: 220, height: 40, content: String(content.studentCount), style: { fontSize: 32, fontWeight: 700, color: '#6366f1', textAlign: 'center' } }),
-    el({ id: 'students-label', type: 'text', x: 320, y: 585, width: 220, height: 20, content: labels.students, style: { fontSize: 13, color: textSecondary, textAlign: 'center' }, locked: true }),
+    el({ id: 'courses-num', type: 'text', fieldKey: 'courseCount', x: 60, y: 520, width: 220, height: 68, content: String(content.courseCount), style: { fontSize: 32, fontWeight: 700, color: '#6366f1', textAlign: 'center', lineHeight: 1.2 } }),
+    el({ id: 'courses-label', type: 'text', x: 60, y: 588, width: 220, height: 32, content: labels.courses, style: { fontSize: 13, color: textSecondary, textAlign: 'center' }, locked: true }),
+    el({ id: 'students-num', type: 'text', fieldKey: 'studentCount', x: 320, y: 520, width: 220, height: 68, content: String(content.studentCount), style: { fontSize: 32, fontWeight: 700, color: '#6366f1', textAlign: 'center', lineHeight: 1.2 } }),
+    el({ id: 'students-label', type: 'text', x: 320, y: 588, width: 220, height: 32, content: labels.students, style: { fontSize: 13, color: textSecondary, textAlign: 'center' }, locked: true }),
     el({ id: 'logo', type: 'image', fieldKey: 'institutionLogo', x: 260, y: 680, width: 80, height: 80, style: { borderRadius: 12, objectFit: 'cover', opacity: 0.6 } }),
   ]
 
@@ -148,15 +358,20 @@ export function createCourseCard(content: AssetContent, variant = 'standard', lo
     el({ id: 'intro', type: 'text', fieldKey: 'courseIntroduction', x: 30, y: 375, width: 540, height: 80, content: content.courseIntroduction, style: { fontSize: 15, color: '#475569', lineHeight: 1.5 } }),
     el({ id: 'price-box', type: 'shape', x: 30, y: 490, width: 260, height: 80, style: { backgroundColor: '#eef2ff', borderRadius: 12 } }),
     el({ id: 'price-label', type: 'text', x: 50, y: 505, width: 100, height: 18, content: labels.tuition, style: { fontSize: 11, fontWeight: 600, color: '#6366f1', letterSpacing: 1 }, locked: true }),
-    el({ id: 'price', type: 'text', fieldKey: 'price', x: 50, y: 525, width: 220, height: 36, content: content.price, style: { fontSize: 28, fontWeight: 700, color: '#4f46e5' } }),
+    el({ id: 'price', type: 'text', fieldKey: 'price', x: 50, y: 525, width: 220, height: 48, content: content.price, style: { fontSize: 28, fontWeight: 700, color: '#4f46e5', lineHeight: 1.2 } }),
     el({ id: 'schedule-box', type: 'shape', x: 310, y: 490, width: 260, height: 80, style: { backgroundColor: '#f8fafc', borderRadius: 12 } }),
     el({ id: 'schedule-label', type: 'text', x: 330, y: 505, width: 100, height: 18, content: labels.schedule, style: { fontSize: 11, fontWeight: 600, color: '#64748b', letterSpacing: 1 }, locked: true }),
-    el({ id: 'schedule', type: 'text', fieldKey: 'schedule', x: 330, y: 525, width: 220, height: 36, content: content.schedule, style: { fontSize: 16, fontWeight: 600, color: '#0f172a' } }),
-    el({ id: 'teacher-row', type: 'shape', x: 30, y: 610, width: 540, height: 80, style: { backgroundColor: '#f8fafc', borderRadius: 12 } }),
-    el({ id: 'teacher-avatar', type: 'image', fieldKey: 'teacherAvatar', x: 50, y: 625, width: 50, height: 50, style: { borderRadius: 25, objectFit: 'cover' } }),
-    el({ id: 'teacher-name', type: 'text', fieldKey: 'teacherName', x: 115, y: 630, width: 300, height: 24, content: content.teacherName, style: { fontSize: 16, fontWeight: 600, color: '#0f172a' } }),
-    el({ id: 'teacher-exp', type: 'text', fieldKey: 'teacherExperience', x: 115, y: 655, width: 400, height: 20, content: content.teacherExperience, style: { fontSize: 13, color: '#64748b' } }),
-    el({ id: 'logo', type: 'image', fieldKey: 'institutionLogo', x: 500, y: 630, width: 50, height: 50, style: { borderRadius: 8, objectFit: 'cover' } }),
+    el({ id: 'schedule', type: 'text', fieldKey: 'schedule', x: 330, y: 525, width: 220, height: 40, content: content.schedule, style: { fontSize: 16, fontWeight: 600, color: '#0f172a', lineHeight: 1.3 } }),
+    ...teacherRow(
+      'teacher',
+      { x: 30, y: 610, width: 540, height: 80, style: { backgroundColor: '#f8fafc', borderRadius: 12 } },
+      50,
+      content,
+      { fontSize: 16, fontWeight: 600, color: '#0f172a', lineHeight: 1.2 },
+      { fontSize: 13, color: '#64748b', lineHeight: 1.2 },
+      300,
+    ),
+    el({ id: 'logo', type: 'image', fieldKey: 'institutionLogo', x: 500, y: 625, width: 50, height: 50, style: { borderRadius: 8, objectFit: 'cover' } }),
   ]
 
   return {
@@ -180,17 +395,42 @@ export function createXiaohongshuCover(content: AssetContent, variant = 'bold', 
   const variantNames = names.xiaohongshu
 
   const elements: CanvasElement[] = [
-    el({ id: 'main-visual', type: 'image', fieldKey: 'classroomScreenshot', x: 60, y: 80, width: 960, height: 720, style: { borderRadius: 24, objectFit: 'cover' } }),
-    el({ id: 'badge', type: 'shape', x: 80, y: 100, width: 120, height: 36, style: { backgroundColor: '#ef4444', borderRadius: 18 } }),
-    el({ id: 'badge-text', type: 'text', x: 80, y: 108, width: 120, height: 20, content: labels.hotBadge, style: { fontSize: 14, fontWeight: 700, color: '#ffffff', textAlign: 'center' }, locked: true }),
-    el({ id: 'headline', type: 'text', fieldKey: 'headline', x: 60, y: 840, width: 960, height: 120, content: content.headline, style: { fontSize: 48, fontWeight: 800, color: '#0f172a', lineHeight: 1.2 } }),
-    el({ id: 'course-name', type: 'text', fieldKey: 'courseName', x: 60, y: 980, width: 960, height: 50, content: content.courseName, style: { fontSize: 28, fontWeight: 600, color: '#6366f1' } }),
-    el({ id: 'teacher-tag', type: 'shape', x: 60, y: 1060, width: 280, height: 48, style: { backgroundColor: '#f1f5f9', borderRadius: 24 } }),
-    el({ id: 'teacher-avatar', type: 'image', fieldKey: 'teacherAvatar', x: 68, y: 1064, width: 40, height: 40, style: { borderRadius: 20, objectFit: 'cover' } }),
-    el({ id: 'teacher-name', type: 'text', fieldKey: 'teacherName', x: 120, y: 1072, width: 200, height: 24, content: content.teacherName, style: { fontSize: 16, fontWeight: 600, color: '#334155' } }),
-    el({ id: 'cta-box', type: 'shape', x: 60, y: 1200, width: 960, height: 80, style: { backgroundColor: '#6366f1', borderRadius: 16 } }),
-    el({ id: 'cta', type: 'text', fieldKey: 'cta', x: 60, y: 1220, width: 960, height: 40, content: content.cta, style: { fontSize: 28, fontWeight: 700, color: '#ffffff', textAlign: 'center' } }),
-    el({ id: 'logo', type: 'image', fieldKey: 'institutionLogo', x: 900, y: 1060, width: 48, height: 48, style: { borderRadius: 8, objectFit: 'cover' } }),
+    el({ id: 'main-visual', type: 'image', fieldKey: 'classroomScreenshot', x: 48, y: 48, width: 984, height: 860, style: { borderRadius: 24, objectFit: 'cover' } }),
+    ...centeredLabel(
+      'badge',
+      72,
+      72,
+      128,
+      40,
+      labels.hotBadge,
+      { backgroundColor: '#ef4444', borderRadius: 20 },
+      { fontSize: 15, fontWeight: 700, color: '#ffffff' },
+      true,
+    ),
+    el({ id: 'headline', type: 'text', fieldKey: 'headline', x: 48, y: 940, width: 984, height: 110, content: content.headline, style: { fontSize: 46, fontWeight: 800, color: '#0f172a', lineHeight: 1.25 } }),
+    el({ id: 'course-name', type: 'text', fieldKey: 'courseName', x: 48, y: 1060, width: 984, height: 44, content: content.courseName, style: { fontSize: 26, fontWeight: 600, color: '#6366f1', lineHeight: 1.3 } }),
+    ...teacherTag(
+      'teacher',
+      48,
+      1128,
+      300,
+      52,
+      40,
+      content,
+      { backgroundColor: '#f1f5f9', borderRadius: 26 },
+      { fontSize: 16, fontWeight: 600, color: '#334155', lineHeight: 1.2 },
+    ),
+    el({ id: 'logo', type: 'image', fieldKey: 'institutionLogo', x: 984, y: 1130, width: 48, height: 48, style: { borderRadius: 8, objectFit: 'cover' } }),
+    ...ctaButton(
+      'cta',
+      48,
+      1340,
+      984,
+      72,
+      content.cta,
+      { backgroundColor: '#6366f1', borderRadius: 16 },
+      { fontSize: 26, fontWeight: 700, color: '#ffffff' },
+    ),
   ]
 
   return {
@@ -205,7 +445,7 @@ export function createXiaohongshuCover(content: AssetContent, variant = 'bold', 
 }
 
 export function createMomentsBanner(content: AssetContent, variant = 'professional', locale: Locale = 'en'): Template {
-  const { labels, names } = getContext(locale)
+  const { names } = getContext(locale)
   const backgrounds: Record<string, string> = {
     professional: 'linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%)',
     bright: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
@@ -217,19 +457,38 @@ export function createMomentsBanner(content: AssetContent, variant = 'profession
   const variantNames = names.moments
 
   const elements: CanvasElement[] = [
-    el({ id: 'visual', type: 'image', fieldKey: 'classroomScreenshot', x: isClean ? 680 : 620, y: 64, width: 480, height: 500, style: { borderRadius: 16, objectFit: 'cover' } }),
-    el({ id: 'logo', type: 'image', fieldKey: 'institutionLogo', x: 60, y: 50, width: 48, height: 48, style: { borderRadius: 8, objectFit: 'cover' } }),
-    el({ id: 'inst-name', type: 'text', fieldKey: 'institutionName', x: 120, y: 58, width: 400, height: 32, content: content.institutionName, style: { fontSize: 18, fontWeight: 600, color: textColor } }),
-    el({ id: 'headline', type: 'text', fieldKey: 'headline', x: 60, y: 130, width: 520, height: 100, content: content.headline, style: { fontSize: 36, fontWeight: 700, color: textColor, lineHeight: 1.2 } }),
-    el({ id: 'course-name', type: 'text', fieldKey: 'courseName', x: 60, y: 250, width: 520, height: 40, content: content.courseName, style: { fontSize: 20, fontWeight: 500, color: subColor } }),
-    el({ id: 'teacher-row', type: 'shape', x: 60, y: 320, width: 320, height: 56, style: { backgroundColor: isClean ? '#f1f5f9' : 'rgba(255,255,255,0.1)', borderRadius: 28 } }),
-    el({ id: 'teacher-avatar', type: 'image', fieldKey: 'teacherAvatar', x: 68, y: 326, width: 44, height: 44, style: { borderRadius: 22, objectFit: 'cover' } }),
-    el({ id: 'teacher-name', type: 'text', fieldKey: 'teacherName', x: 125, y: 332, width: 240, height: 24, content: content.teacherName, style: { fontSize: 16, fontWeight: 600, color: textColor } }),
-    el({ id: 'teacher-exp', type: 'text', fieldKey: 'teacherExperience', x: 125, y: 355, width: 240, height: 18, content: content.teacherExperience, style: { fontSize: 12, color: subColor } }),
-    el({ id: 'price', type: 'text', fieldKey: 'price', x: 60, y: 420, width: 200, height: 44, content: content.price, style: { fontSize: 32, fontWeight: 700, color: isClean ? '#6366f1' : '#a5b4fc' } }),
-    el({ id: 'schedule', type: 'text', fieldKey: 'schedule', x: 60, y: 470, width: 400, height: 24, content: content.schedule, style: { fontSize: 14, color: subColor } }),
-    el({ id: 'cta-box', type: 'shape', x: 60, y: 530, width: 180, height: 44, style: { backgroundColor: isClean ? '#6366f1' : '#ffffff', borderRadius: 22 } }),
-    el({ id: 'cta', type: 'text', fieldKey: 'cta', x: 60, y: 540, width: 180, height: 28, content: labels.learnMore, style: { fontSize: 15, fontWeight: 600, color: isClean ? '#ffffff' : '#4f46e5', textAlign: 'center' } }),
+    el({ id: 'visual', type: 'image', fieldKey: 'classroomScreenshot', x: 640, y: 40, width: 520, height: 548, style: { borderRadius: 16, objectFit: 'cover' } }),
+    el({ id: 'logo', type: 'image', fieldKey: 'institutionLogo', x: 48, y: 44, width: 48, height: 48, style: { borderRadius: 8, objectFit: 'cover' } }),
+    el({ id: 'inst-name', type: 'text', fieldKey: 'institutionName', x: 108, y: 52, width: 480, height: 32, content: content.institutionName, style: { fontSize: 18, fontWeight: 600, color: textColor, lineHeight: 1.3 } }),
+    el({ id: 'headline', type: 'text', fieldKey: 'headline', x: 48, y: 112, width: 560, height: 96, content: content.headline, style: { fontSize: 34, fontWeight: 700, color: textColor, lineHeight: 1.25 } }),
+    el({ id: 'course-name', type: 'text', fieldKey: 'courseName', x: 48, y: 218, width: 560, height: 36, content: content.courseName, style: { fontSize: 19, fontWeight: 500, color: subColor, lineHeight: 1.3 } }),
+    ...teacherRow(
+      'teacher',
+      {
+        x: 48,
+        y: 278,
+        width: 340,
+        height: 60,
+        style: { backgroundColor: isClean ? '#f1f5f9' : 'rgba(255,255,255,0.12)', borderRadius: 30 },
+      },
+      48,
+      content,
+      { fontSize: 16, fontWeight: 600, color: textColor, lineHeight: 1.2 },
+      { fontSize: 12, color: subColor, lineHeight: 1.2 },
+      260,
+    ),
+    el({ id: 'price', type: 'text', fieldKey: 'price', x: 48, y: 368, width: 220, height: 48, content: content.price, style: { fontSize: 30, fontWeight: 700, color: isClean ? '#6366f1' : '#a5b4fc', lineHeight: 1.2 } }),
+    el({ id: 'schedule', type: 'text', fieldKey: 'schedule', x: 48, y: 420, width: 480, height: 28, content: content.schedule, style: { fontSize: 14, color: subColor, lineHeight: 1.3 } }),
+    ...ctaButton(
+      'cta',
+      48,
+      480,
+      200,
+      48,
+      content.cta,
+      { backgroundColor: isClean ? '#6366f1' : '#ffffff', borderRadius: 24 },
+      { fontSize: 15, fontWeight: 600, color: isClean ? '#ffffff' : '#4f46e5' },
+    ),
   ]
 
   return {

@@ -4,7 +4,7 @@ export const teachers: Teacher[] = [
   {
     id: 't1',
     name: 'Dr. Sarah Chen',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/png?seed=Sarah',
     experience: '12 years · PhD Mathematics',
     teachingStyle: 'Interactive & Visual',
     courseCount: 8,
@@ -14,7 +14,7 @@ export const teachers: Teacher[] = [
   {
     id: 't2',
     name: 'James Wilson',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=James',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/png?seed=James',
     experience: '8 years · TESOL Certified',
     teachingStyle: 'Immersive Conversation',
     courseCount: 6,
@@ -24,7 +24,7 @@ export const teachers: Teacher[] = [
   {
     id: 't3',
     name: 'Emily Zhang',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emily',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/png?seed=Emily',
     experience: '10 years · Former Google Engineer',
     teachingStyle: 'Project-Based Learning',
     courseCount: 5,
@@ -34,7 +34,7 @@ export const teachers: Teacher[] = [
   {
     id: 't4',
     name: 'Michael Liu',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Michael',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/png?seed=Michael',
     experience: '15 years · Physics Olympiad Coach',
     teachingStyle: 'Problem-Solving Focus',
     courseCount: 7,
@@ -44,7 +44,7 @@ export const teachers: Teacher[] = [
   {
     id: 't5',
     name: 'Anna Kowalski',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Anna',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/png?seed=Anna',
     experience: '6 years · Art Education MA',
     teachingStyle: 'Creative Expression',
     courseCount: 4,
@@ -54,7 +54,7 @@ export const teachers: Teacher[] = [
   {
     id: 't6',
     name: 'David Park',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/png?seed=David',
     experience: '9 years · IELTS Examiner',
     teachingStyle: 'Exam Strategy & Practice',
     courseCount: 9,
@@ -64,7 +64,7 @@ export const teachers: Teacher[] = [
   {
     id: 't7',
     name: 'Lisa Wang',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lisa',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/png?seed=Lisa',
     experience: '7 years · Early Childhood Ed',
     teachingStyle: 'Play-Based Learning',
     courseCount: 5,
@@ -74,7 +74,7 @@ export const teachers: Teacher[] = [
   {
     id: 't8',
     name: 'Robert Kim',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Robert',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/png?seed=Robert',
     experience: '11 years · Robotics Engineer',
     teachingStyle: 'Hands-On Building',
     courseCount: 6,
@@ -84,7 +84,7 @@ export const teachers: Teacher[] = [
   {
     id: 't9',
     name: 'Sophie Martin',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/png?seed=Sophie',
     experience: '5 years · Native French Speaker',
     teachingStyle: 'Cultural Immersion',
     courseCount: 3,
@@ -94,7 +94,7 @@ export const teachers: Teacher[] = [
   {
     id: 't10',
     name: 'Kevin Zhao',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Kevin',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/png?seed=Kevin',
     experience: '8 years · Data Science Lead',
     teachingStyle: 'Real-World Applications',
     courseCount: 4,
