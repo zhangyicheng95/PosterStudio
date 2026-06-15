@@ -24,7 +24,7 @@ export function PropertyPanel({
 
   if (!selectedElement) {
     return (
-      <aside className="flex w-72 shrink-0 flex-col border-l border-slate-200 bg-white">
+      <aside className="flex w-full lg:w-72 shrink-0 flex-col border-l border-slate-200 bg-white">
         <div className="px-4 py-4 border-b border-slate-200">
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
             <Settings2 className="h-3.5 w-3.5" />
@@ -46,13 +46,12 @@ export function PropertyPanel({
   }
 
   const updateContent = (value: string) => {
-    if (selectedElement.type === 'text') {
+    if (selectedElement.fieldKey) {
+      onUpdateContent({ [selectedElement.fieldKey]: value } as Partial<typeof content>)
+    } else if (selectedElement.type === 'text') {
       onUpdateElement(selectedElement.id, { content: value })
     } else if (selectedElement.type === 'image') {
       onUpdateElement(selectedElement.id, { src: value })
-    }
-    if (selectedElement.fieldKey) {
-      onUpdateContent({ [selectedElement.fieldKey]: value } as Partial<typeof content>)
     }
   }
 
@@ -64,7 +63,7 @@ export function PropertyPanel({
         : t('properties.element')
 
   return (
-    <aside className="flex w-72 shrink-0 flex-col border-l border-slate-200 bg-white">
+    <aside className="flex w-full lg:w-72 shrink-0 flex-col border-l border-slate-200 bg-white">
       <div className="px-4 py-4 border-b border-slate-200">
         <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
           <Settings2 className="h-3.5 w-3.5" />

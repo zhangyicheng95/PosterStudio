@@ -34,7 +34,7 @@ export function AssetTypeList({ activeType, onSelect }: AssetTypeListProps) {
   const { t, assetLabel } = useTranslation()
 
   return (
-    <aside className="flex w-56 shrink-0 flex-col border-r border-slate-200 bg-slate-50/50">
+    <aside className="flex w-full lg:w-56 shrink-0 flex-col border-r border-slate-200 bg-slate-50/50">
       <div className="px-4 py-4 border-b border-slate-200">
         <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('workspace.assetTypes')}</h2>
       </div>

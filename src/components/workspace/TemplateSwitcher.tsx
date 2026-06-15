@@ -1,9 +1,13 @@
-import type { GeneratedAsset } from '../../types'
 import { LayoutTemplate } from 'lucide-react'
 import { useTranslation } from '../../hooks/useTranslation'
 
+interface TemplateOption {
+  templateId: string
+  name: string
+}
+
 interface TemplateSwitcherProps {
-  variants: GeneratedAsset[]
+  variants: TemplateOption[]
   activeTemplateId: string | null
   onSwitch: (templateId: string) => void
 }

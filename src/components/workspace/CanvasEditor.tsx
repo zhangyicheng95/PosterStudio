@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import type { GeneratedAsset } from '../../types'
 import { useDragResize } from '../../hooks/useDragResize'
 import { useTranslation } from '../../hooks/useTranslation'
+import { AssetCanvas } from './AssetCanvas'
 import { CanvasElementView } from './CanvasElementView'
 
 interface CanvasEditorProps {
@@ -44,7 +45,7 @@ export function CanvasEditor({
 
   return (
     <div
-      className="flex flex-1 items-center justify-center overflow-auto bg-[#e8eaed] p-8"
+      className="flex flex-1 items-center justify-center overflow-auto bg-[#e8eaed] p-4 md:p-8"
       onClick={() => onSelectElement(null)}
     >
       <div
@@ -54,31 +55,19 @@ export function CanvasEditor({
           transition: 'transform 0.15s ease',
         }}
       >
-        <div
-          ref={canvasRef}
-          id="export-canvas"
-          data-export-canvas
-          style={{
-            width: asset.width,
-            height: asset.height,
-            background: asset.background,
-            position: 'relative',
-            overflow: 'hidden',
-            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)',
-            borderRadius: 4,
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {asset.elements.map((element) => (
-            <CanvasElementView
-              key={element.id}
-              element={element}
-              isSelected={selectedElementId === element.id}
-              onSelect={onSelectElement}
-              onDragStart={startDrag}
-              onResizeStart={startResize}
-            />
-          ))}
+        <div ref={canvasRef}>
+          <AssetCanvas asset={asset} exportId="active" showShadow>
+            {asset.elements.map((element) => (
+              <CanvasElementView
+                key={element.id}
+                element={element}
+                isSelected={selectedElementId === element.id}
+                onSelect={onSelectElement}
+                onDragStart={startDrag}
+                onResizeStart={startResize}
+              />
+            ))}
+          </AssetCanvas>
         </div>
       </div>
     </div>

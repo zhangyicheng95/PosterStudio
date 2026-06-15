@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { CanvasElement } from '../../types'
 import type { ResizeHandle } from '../../utils/canvas'
 import { RESIZE_HANDLES } from '../../utils/canvas'
@@ -8,6 +9,7 @@ interface CanvasElementViewProps {
   onSelect: (id: string) => void
   onDragStart: (e: React.MouseEvent, element: CanvasElement) => void
   onResizeStart: (e: React.MouseEvent, element: CanvasElement, handle: ResizeHandle) => void
+  interactive?: boolean
 }
 
 function getHandleStyle(handle: ResizeHandle, w: number, h: number): React.CSSProperties {
@@ -24,12 +26,13 @@ function getHandleStyle(handle: ResizeHandle, w: number, h: number): React.CSSPr
   return positions[handle]
 }
 
-export function CanvasElementView({
+export const CanvasElementView = memo(function CanvasElementView({
   element,
   isSelected,
   onSelect,
   onDragStart,
   onResizeStart,
+  interactive = true,
 }: CanvasElementViewProps) {
   const style: React.CSSProperties = {
     position: 'absolute',
@@ -39,7 +42,7 @@ export function CanvasElementView({
     height: element.height,
     transform: element.rotation ? `rotate(${element.rotation}deg)` : undefined,
     opacity: element.style?.opacity ?? 1,
-    cursor: element.locked ? 'default' : 'move',
+    cursor: !interactive || element.locked ? 'default' : 'move',
     zIndex: isSelected ? 20 : 1,
   }
 
@@ -111,13 +114,17 @@ export function CanvasElementView({
     <div
       className={`canvas-element ${isSelected ? 'selected' : ''}`}
       style={style}
-      onMouseDown={(e) => {
-        onSelect(element.id)
-        if (!element.locked) onDragStart(e, element)
-      }}
+      onMouseDown={
+        interactive
+          ? (e) => {
+              onSelect(element.id)
+              if (!element.locked) onDragStart(e, element)
+            }
+          : undefined
+      }
     >
       {renderContent()}
-      {isSelected && !element.locked && (
+      {interactive && isSelected && !element.locked && (
         <>
           {RESIZE_HANDLES.map((handle) => (
             <div
@@ -131,4 +138,4 @@ export function CanvasElementView({
       )}
     </div>
   )
-}
+})

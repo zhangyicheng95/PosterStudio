@@ -44,7 +44,7 @@ export function UploadPage() {
     }
   }, [isGenerating, navigate])
 
-  const canGenerate = uploadedScreenshot || uploadedRecording
+  const canGenerate = uploadedScreenshot || selectedScreenshotId
 
   return (
     <div className="min-h-screen bg-white">
@@ -109,7 +109,7 @@ export function UploadPage() {
           <Button
             size="lg"
             onClick={() => generateAssets()}
-            disabled={!canGenerate && !selectedScreenshotId}
+            disabled={!canGenerate}
             className="shadow-lg shadow-brand-600/20 min-w-64"
           >
             <Sparkles className="h-4 w-4" />

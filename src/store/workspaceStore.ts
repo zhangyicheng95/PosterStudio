@@ -152,7 +152,16 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     })
   },
 
-  setUploads: (screenshot, recording) => set({ uploadedScreenshot: screenshot, uploadedRecording: recording }),
+  setUploads: (screenshot, recording) => {
+    const state = get()
+    if (state.uploadedScreenshot?.startsWith('blob:') && screenshot !== state.uploadedScreenshot) {
+      URL.revokeObjectURL(state.uploadedScreenshot)
+    }
+    if (state.uploadedRecording?.startsWith('blob:') && recording !== state.uploadedRecording) {
+      URL.revokeObjectURL(state.uploadedRecording)
+    }
+    set({ uploadedScreenshot: screenshot, uploadedRecording: recording })
+  },
 
   setSelections: (teacherId, courseId, institutionId, screenshotId) =>
     set({ selectedTeacherId: teacherId, selectedCourseId: courseId, selectedInstitutionId: institutionId, selectedScreenshotId: screenshotId }),

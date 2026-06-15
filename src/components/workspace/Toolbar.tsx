@@ -1,45 +1,64 @@
-import { Download, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react'
+import { Download, ZoomIn, ZoomOut, RotateCcw, Loader2, Package } from 'lucide-react'
 import { Button } from '../ui/Button'
 import { useCanvasExport } from '../../hooks/useCanvasExport'
 import { useTranslation } from '../../hooks/useTranslation'
+import type { AssetType } from '../../types'
 
 interface ToolbarProps {
   assetName: string
+  assetTypes: AssetType[]
   zoom: number
+  canvasRef: React.RefObject<HTMLDivElement | null>
   onZoomIn: () => void
   onZoomOut: () => void
   onResetZoom: () => void
 }
 
-export function Toolbar({ assetName, zoom, onZoomIn, onZoomOut, onResetZoom }: ToolbarProps) {
-  const { t } = useTranslation()
-  const { exportPng } = useCanvasExport()
+export function Toolbar({
+  assetName,
+  assetTypes,
+  zoom,
+  canvasRef,
+  onZoomIn,
+  onZoomOut,
+  onResetZoom,
+}: ToolbarProps) {
+  const { t, assetLabel } = useTranslation()
+  const { exportPng, exportAll, isExporting } = useCanvasExport()
 
   const handleExport = () => {
-    const canvas = document.querySelector('[data-export-canvas]') as HTMLElement
+    const canvas = canvasRef.current?.querySelector('[data-export-canvas="active"]') as HTMLElement | null
     exportPng(canvas, assetName)
   }
 
+  const handleExportAll = () => {
+    exportAll(assetTypes, assetLabel)
+  }
+
   return (
-    <div className="flex items-center justify-between px-4 py-2 border-b border-slate-200 bg-white">
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-slate-900">{assetName}</span>
-        <span className="text-xs text-slate-400">{Math.round(zoom * 100)}%</span>
+    <div className="flex items-center justify-between px-3 md:px-4 py-2 border-b border-slate-200 bg-white gap-2">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="text-sm font-medium text-slate-900 truncate">{assetName}</span>
+        <span className="text-xs text-slate-400 shrink-0">{Math.round(zoom * 100)}%</span>
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 shrink-0">
         <Button variant="ghost" size="sm" onClick={onZoomOut} title={t('workspace.zoomOut')}>
           <ZoomOut className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={onResetZoom} title={t('workspace.resetZoom')}>
+        <Button variant="ghost" size="sm" onClick={onResetZoom} title={t('workspace.resetZoom')} className="hidden sm:inline-flex">
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>
         <Button variant="ghost" size="sm" onClick={onZoomIn} title={t('workspace.zoomIn')}>
           <ZoomIn className="h-4 w-4" />
         </Button>
-        <div className="w-px h-5 bg-slate-200 mx-1" />
-        <Button size="sm" onClick={handleExport}>
-          <Download className="h-4 w-4" />
-          {t('workspace.exportPng')}
+        <div className="w-px h-5 bg-slate-200 mx-1 hidden sm:block" />
+        <Button size="sm" onClick={handleExport} disabled={isExporting}>
+          {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+          <span className="hidden sm:inline">{t('workspace.exportPng')}</span>
+        </Button>
+        <Button variant="secondary" size="sm" onClick={handleExportAll} disabled={isExporting}>
+          {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Package className="h-4 w-4" />}
+          <span className="hidden md:inline">{t('workspace.exportAll')}</span>
         </Button>
       </div>
     </div>
